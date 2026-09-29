@@ -7,11 +7,16 @@ import { cn } from "cn"
 import { Button } from "@/components/ui/button"
 import { XIcon } from "lucide-react"
 
+import { Slot } from "@radix-ui/react-slot"
+
 function Sheet({ ...props }: SheetPrimitive.Root.Props) {
   return <SheetPrimitive.Root data-slot="sheet" {...props} />
 }
 
-function SheetTrigger({ ...props }: SheetPrimitive.Trigger.Props) {
+function SheetTrigger({ asChild, ...props }: SheetPrimitive.Trigger.Props & { asChild?: boolean }) {
+  if (asChild) {
+    return <SheetPrimitive.Trigger data-slot="sheet-trigger" render={<Slot />} {...props} />
+  }
   return <SheetPrimitive.Trigger data-slot="sheet-trigger" {...props} />
 }
 
