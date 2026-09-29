@@ -84,7 +84,7 @@ export function Chat({ id: chatId, initialMessages = [], currentConnectionId, co
     }
   } : undefined;
 
-  const { id, messages, append, isLoading, error, stop, reload } = useChat({
+  const { messages, append, isLoading, error, stop, reload } = useChat({
     id: effectiveId,
     initialMessages,
     api: "/api/chat",
@@ -96,7 +96,7 @@ export function Chat({ id: chatId, initialMessages = [], currentConnectionId, co
       }
     },
     onFinish: async (message) => {
-      if (isBrowserMode && id) {
+      if (isBrowserMode && effectiveId) {
         // We only save the assistant message. The user message is saved below in handleMessageSubmit
         // Wait, Vercel AI SDK only calls onFinish with the assistant message
         let finalContent = message.content;
@@ -109,7 +109,7 @@ export function Chat({ id: chatId, initialMessages = [], currentConnectionId, co
         }
 
         try {
-          await saveBrowserMessageAction(id, "assistant", finalContent, reasoning, 0, activeConnection?.id);
+          await saveBrowserMessageAction(effectiveId, "assistant", finalContent, reasoning, 0, activeConnection?.id);
         } catch (e) {
           console.error("Failed to save assistant message", e);
         }
@@ -145,9 +145,9 @@ export function Chat({ id: chatId, initialMessages = [], currentConnectionId, co
       }
     }
 
-    if (isBrowserMode && id) {
+    if (isBrowserMode && effectiveId) {
       try {
-        await saveBrowserMessageAction(id, "user", finalContent, null, 0, activeConnection?.id);
+        await saveBrowserMessageAction(effectiveId, "user", finalContent, null, 0, activeConnection?.id);
       } catch (e) {
         console.error("Failed to save user message", e);
       }
@@ -161,23 +161,23 @@ export function Chat({ id: chatId, initialMessages = [], currentConnectionId, co
   };
 
   useEffect(() => {
-    if (messages.length > 0 && id && id !== "undefined" && typeof window !== "undefined" && window.location.pathname === "/") {
-      window.history.replaceState(null, "", `/c/${id}`);
+    if (messages.length > 0 && effectiveId && effectiveId !== "undefined" && typeof window !== "undefined" && window.location.pathname === "/") {
+      window.history.replaceState(null, "", `/c/${effectiveId}`);
     }
-  }, [messages.length, id]);
+  }, [messages.length, effectiveId]);
 
   return (
     <div className="flex h-full w-full flex-col overflow-hidden relative">
-      {id && connections.length > 0 && (
+      {effectiveId && connections.length > 0 && (
         <div className="absolute top-0 left-0 right-0 z-10 flex justify-center p-2 pointer-events-none gap-2">
           <div className="pointer-events-auto shadow-md rounded-md flex items-center gap-1">
             <ModelSwitcher 
-              conversationId={id} 
+              conversationId={effectiveId} 
               currentConnectionId={currentConnectionId} 
               connections={connections} 
             />
-            <SystemPromptModal conversationId={id} initialPrompt={systemPrompt || ""} />
-            <ChatHeaderActions conversationId={id} messages={messages} />
+            <SystemPromptModal conversationId={effectiveId} initialPrompt={systemPrompt || ""} />
+            <ChatHeaderActions conversationId={effectiveId} messages={messages} />
           </div>
         </div>
       )}
