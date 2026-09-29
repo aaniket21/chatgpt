@@ -32,7 +32,6 @@ export function SystemPromptModal({ conversationId, initialPrompt = "" }: System
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      {/* @ts-expect-error React 19 types */}
       <DialogTrigger asChild>
         <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full bg-background/50 backdrop-blur border border-border/50 shadow-sm" title="System Prompt">
           <Settings2 className="h-4 w-4" />

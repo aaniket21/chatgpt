@@ -49,7 +49,6 @@ export function ConnectionsList({ connections }: { connections: any[] }) {
             setIsAddOpen(true);
           }
         }}>
-          {/* @ts-expect-error React 19 types */}
           <DialogTrigger asChild>
             <Button>
               <Plus className="h-4 w-4 mr-2" />
@@ -105,6 +104,9 @@ export function ConnectionsList({ connections }: { connections: any[] }) {
               <CardContent className="pb-2 flex-1 text-sm text-muted-foreground">
                 <div className="truncate">Model: {conn.modelId}</div>
                 {conn.baseUrl && <div className="truncate">URL: {conn.baseUrl}</div>}
+                {conn.encryptedApiKey && (
+                  <div className="truncate">API Key: ••••••••{conn.encryptedApiKey.slice(-4)}</div>
+                )}
               </CardContent>
               <CardFooter className="flex justify-end gap-2 pt-2 border-t mt-auto bg-muted/20">
                 <Button variant="ghost" size="sm" onClick={() => setEditingId(conn.id)}>

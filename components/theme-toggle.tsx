@@ -15,7 +15,6 @@ export function ThemeToggle() {
 
   return (
     <DropdownMenu>
-      {/* @ts-expect-error React 19 types */}
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" aria-label="Toggle theme">
           <Sun className="h-4 w-4 rotate-0 scale-100 transition-transform dark:-rotate-90 dark:scale-0" />

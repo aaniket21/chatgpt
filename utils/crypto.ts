@@ -3,13 +3,21 @@ import crypto from "crypto";
 const ALGORITHM = "aes-256-gcm";
 
 // Ensure we have a 32-byte key
-function getSecretKey() {
+function getSecretKey(): Buffer {
   const secret = process.env.ENCRYPTION_KEY || "01234567890123456789012345678901"; // Fallback for testing ONLY
-  if (secret.length !== 32) {
-    // If not 32 bytes, hash it to make it 32 bytes
-    return crypto.createHash("sha256").update(secret).digest();
+
+  // 64-char hex string = 32 bytes when decoded
+  if (secret.length === 64 && /^[0-9a-fA-F]+$/.test(secret)) {
+    return Buffer.from(secret, "hex");
   }
-  return Buffer.from(secret);
+
+  // Exactly 32 ASCII chars = 32 bytes
+  if (secret.length === 32) {
+    return Buffer.from(secret);
+  }
+
+  // Anything else: hash to get a consistent 32-byte key
+  return crypto.createHash("sha256").update(secret).digest();
 }
 
 export function encryptKey(text: string): string {

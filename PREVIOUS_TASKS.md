@@ -77,3 +77,13 @@
 - [x] 6.11 Dockerfile
 - [x] 6.12 Final verification
 
+## Phase 7: Post-Audit Gap Fixes (Completed by Gemini 3.1 Pro (High))
+- [x] P1. Middleware missing (security)
+- [x] P2. Crypto key handling bug
+- [x] P3. Model params in connection form
+- [x] P5. Shared links revocable
+- [x] M1 & P6. Keyboard shortcuts & Sidebar search
+- [x] M4. "Fetch models" button
+- [x] M5. Mask API key last 4 chars
+- [x] M6. Delete all conversations
+- [x] P7. PDF export

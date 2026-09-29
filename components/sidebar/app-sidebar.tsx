@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { UserMenu } from "@/components/user-menu";
-import { createChatAction, deleteChatAction, renameChatAction, togglePinAction } from "@/server/actions/chat-actions";
+import { createChatAction, deleteChatAction, renameChatAction, togglePinAction, deleteAllChatsAction } from "@/server/actions/chat-actions";
 import {
   Brain,
   Menu,
@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { format, isToday, isYesterday, isThisWeek, isThisMonth } from "date-fns";
 import { cn } from "@/lib/utils";
+import { useKeyboardShortcuts } from "@/lib/use-keyboard-shortcuts";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -73,6 +74,22 @@ function SidebarContent({ conversations }: { conversations: Conversation[] }) {
   const pathname = usePathname();
   const router = useRouter();
   const [isPending, setIsPending] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showSearch, setShowSearch] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  useKeyboardShortcuts({
+    onSearch: () => {
+      setShowSearch(true);
+      setTimeout(() => searchInputRef.current?.focus(), 50);
+    },
+  });
+
+  const filteredConversations = useMemo(() => {
+    if (!searchQuery.trim()) return conversations;
+    const q = searchQuery.toLowerCase();
+    return conversations.filter(c => (c.title || "").toLowerCase().includes(q));
+  }, [conversations, searchQuery]);
   
   const handleNewChat = async () => {
     setIsPending(true);
@@ -100,7 +117,7 @@ function SidebarContent({ conversations }: { conversations: Conversation[] }) {
     await togglePinAction(id, !pinned);
   };
 
-  const grouped = useMemo(() => groupConversations(conversations), [conversations]);
+  const grouped = useMemo(() => groupConversations(filteredConversations), [filteredConversations]);
 
   const renderGroup = (title: string, list: Conversation[]) => {
     if (list.length === 0) return null;
@@ -131,7 +148,6 @@ function SidebarContent({ conversations }: { conversations: Conversation[] }) {
                   </Link>
                 
                 <DropdownMenu>
-                  {/* @ts-expect-error React 19 types */}
                   <DropdownMenuTrigger asChild>
                     <Button 
                       variant="ghost" 
@@ -192,10 +208,37 @@ function SidebarContent({ conversations }: { conversations: Conversation[] }) {
           <Plus className="h-4 w-4" />
           New Chat
         </Button>
-        <Button variant="outline" size="icon" aria-label="Search chats">
+        <Button 
+          variant="outline" 
+          size="icon" 
+          aria-label="Search chats"
+          onClick={() => {
+            setShowSearch(!showSearch);
+            if (!showSearch) setTimeout(() => searchInputRef.current?.focus(), 50);
+          }}
+        >
           <Search className="h-4 w-4" />
         </Button>
       </div>
+
+      {showSearch && (
+        <div className="px-4 pb-2">
+          <input
+            ref={searchInputRef}
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search conversations..."
+            className="w-full rounded-md border bg-background px-3 py-1.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+            onKeyDown={(e) => {
+              if (e.key === "Escape") {
+                setShowSearch(false);
+                setSearchQuery("");
+              }
+            }}
+          />
+        </div>
+      )}
 
       <ScrollArea className="flex-1 px-2">
         <div className="p-2">
@@ -212,6 +255,21 @@ function SidebarContent({ conversations }: { conversations: Conversation[] }) {
               {renderGroup("Previous 7 Days", grouped.previous7Days)}
               {renderGroup("Previous 30 Days", grouped.previous30Days)}
               {renderGroup("Older", grouped.older)}
+              <div className="pt-2 pb-1 px-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10"
+                  onClick={async () => {
+                    if (window.confirm("Are you sure you want to delete ALL conversations? This cannot be undone.")) {
+                      await deleteAllChatsAction();
+                    }
+                  }}
+                >
+                  <Trash2 className="mr-2 h-3.5 w-3.5" />
+                  Delete all conversations
+                </Button>
+              </div>
             </>
           )}
         </div>
@@ -221,7 +279,6 @@ function SidebarContent({ conversations }: { conversations: Conversation[] }) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <UserMenu />
-            {/* @ts-expect-error React 19 types */}
             <Button variant="ghost" size="icon" asChild aria-label="Settings">
               <Link href="/settings">
                 <Settings className="h-4 w-4" />
@@ -247,7 +304,6 @@ export function AppSidebar({ children, conversations }: SidebarProps) {
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
         <div className="flex flex-1 flex-col overflow-hidden">
           <header className="flex items-center gap-2 border-b p-2 md:hidden">
-            {/* @ts-expect-error React 19 types */}
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" aria-label="Open sidebar">
                 <Menu className="h-5 w-5" />

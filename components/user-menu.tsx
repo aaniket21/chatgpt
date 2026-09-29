@@ -31,7 +31,6 @@ export function UserMenu() {
 
   return (
     <DropdownMenu>
-      {/* @ts-expect-error React 19 types */}
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full" aria-label="User menu">
           <Avatar className="h-8 w-8">

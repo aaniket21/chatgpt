@@ -222,3 +222,14 @@ export const messagesRelations = relations(messages, ({ one }) => ({
     references: [conversations.id],
   }),
 }));
+
+export const sharedLinksRelations = relations(sharedLinks, ({ one }) => ({
+  conversation: one(conversations, {
+    fields: [sharedLinks.conversationId],
+    references: [conversations.id],
+  }),
+  user: one(users, {
+    fields: [sharedLinks.userId],
+    references: [users.id],
+  }),
+}));

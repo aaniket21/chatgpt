@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Download, Share } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Message } from "ai";
-import { generateSharedLinkAction } from "@/server/actions/chat-actions";
+import { generateSharedLinkAction, revokeSharedLinkAction } from "@/server/actions/chat-actions";
 
 interface ChatHeaderActionsProps {
   conversationId: string;
@@ -16,6 +16,7 @@ export function ChatHeaderActions({ conversationId, messages }: ChatHeaderAction
   const [shareOpen, setShareOpen] = useState(false);
   const [isPending, setIsPending] = useState(false);
   const [shareUrl, setShareUrl] = useState("");
+  const [shareLinkId, setShareLinkId] = useState("");
 
   const handleExport = (format: "md" | "json") => {
     let content = "";
@@ -46,8 +47,9 @@ export function ChatHeaderActions({ conversationId, messages }: ChatHeaderAction
   const handleShare = async () => {
     setIsPending(true);
     try {
-      const link = await generateSharedLinkAction(conversationId);
-      setShareUrl(window.location.origin + "/share/" + link);
+      const linkId = await generateSharedLinkAction(conversationId);
+      setShareLinkId(linkId);
+      setShareUrl(window.location.origin + "/share/" + linkId);
     } catch (e) {
       console.error(e);
       alert("Failed to generate share link");
@@ -56,10 +58,25 @@ export function ChatHeaderActions({ conversationId, messages }: ChatHeaderAction
     }
   };
 
+  const handleRevoke = async () => {
+    if (!shareLinkId) return;
+    setIsPending(true);
+    try {
+      await revokeSharedLinkAction(shareLinkId);
+      setShareUrl("");
+      setShareLinkId("");
+      setShareOpen(false);
+    } catch (e) {
+      console.error(e);
+      alert("Failed to revoke share link");
+    } finally {
+      setIsPending(false);
+    }
+  };
+
   return (
     <div className="flex items-center gap-1">
       <Dialog>
-        {/* @ts-expect-error React 19 types */}
         <DialogTrigger asChild>
           <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full bg-background/50 backdrop-blur border border-border/50 shadow-sm" title="Export Chat">
             <Download className="h-4 w-4" />
@@ -72,12 +89,26 @@ export function ChatHeaderActions({ conversationId, messages }: ChatHeaderAction
           <div className="flex flex-col gap-2 py-4">
             <Button variant="outline" onClick={() => handleExport("md")}>Export as Markdown</Button>
             <Button variant="outline" onClick={() => handleExport("json")}>Export as JSON</Button>
+            <Button variant="outline" onClick={() => {
+              const content = messages.map(m =>
+                `<div style="margin-bottom:24px;"><strong style="color:${m.role === 'user' ? '#2563eb' : '#16a34a'}">${m.role === 'user' ? 'You' : 'Assistant'}:</strong><div style="white-space:pre-wrap;margin-top:8px;">${m.content.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div></div>`
+              ).join('<hr style="border:none;border-top:1px solid #e5e7eb;margin:16px 0;">');
+              const printWindow = window.open('', '_blank');
+              if (printWindow) {
+                printWindow.document.write(`
+                  <html><head><title>Chat Export</title>
+                  <style>body{font-family:system-ui,-apple-system,sans-serif;max-width:800px;margin:40px auto;padding:0 20px;line-height:1.6;color:#1f2937;font-size:14px;}h1{font-size:18px;color:#374151;}hr{border:none;border-top:1px solid #e5e7eb;margin:16px 0;}</style>
+                  </head><body><h1>Chat Export — ${new Date().toLocaleDateString()}</h1><hr>${content}</body></html>
+                `);
+                printWindow.document.close();
+                printWindow.print();
+              }
+            }}>Export as PDF</Button>
           </div>
         </DialogContent>
       </Dialog>
 
       <Dialog open={shareOpen} onOpenChange={setShareOpen}>
-        {/* @ts-expect-error React 19 types */}
         <DialogTrigger asChild>
           <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full bg-background/50 backdrop-blur border border-border/50 shadow-sm" title="Share Chat">
             <Share className="h-4 w-4" />
@@ -92,9 +123,14 @@ export function ChatHeaderActions({ conversationId, messages }: ChatHeaderAction
               Create a public, read-only link to share this conversation.
             </p>
             {shareUrl ? (
-              <div className="flex items-center gap-2">
-                <input readOnly value={shareUrl} className="flex-1 rounded-md border p-2 text-sm" />
-                <Button onClick={() => navigator.clipboard.writeText(shareUrl)}>Copy</Button>
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <input readOnly value={shareUrl} className="flex-1 rounded-md border p-2 text-sm" />
+                  <Button onClick={() => navigator.clipboard.writeText(shareUrl)}>Copy</Button>
+                </div>
+                <Button variant="destructive" size="sm" onClick={handleRevoke} disabled={isPending}>
+                  {isPending ? "Revoking..." : "Revoke Link"}
+                </Button>
               </div>
             ) : (
               <Button onClick={handleShare} disabled={isPending}>
@@ -107,3 +143,4 @@ export function ChatHeaderActions({ conversationId, messages }: ChatHeaderAction
     </div>
   );
 }
+

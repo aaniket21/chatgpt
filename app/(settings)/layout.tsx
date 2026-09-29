@@ -22,15 +22,12 @@ export default function SettingsLayout({
       <div className="flex flex-1 flex-col sm:flex-row mx-auto w-full max-w-6xl">
         <aside className="w-full sm:w-64 border-r p-4 hidden sm:block">
           <nav className="flex flex-col gap-1">
-            {/* @ts-expect-error React 19 types */}
             <Button variant="secondary" className="justify-start w-full" asChild>
               <Link href="/settings/connections">Model Connections</Link>
             </Button>
-            {/* @ts-expect-error React 19 types */}
             <Button variant="ghost" className="justify-start w-full" asChild>
               <Link href="/settings/general">General Settings</Link>
             </Button>
-            {/* @ts-expect-error React 19 types */}
             <Button variant="ghost" className="justify-start w-full" asChild>
               <Link href="/settings/prompts">Prompt Templates</Link>
             </Button>

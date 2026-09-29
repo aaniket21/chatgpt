@@ -1,16 +1,31 @@
 import { db } from "@/db";
-import { conversations, messages, users } from "@/db/schema";
-import { eq, asc } from "drizzle-orm";
+import { conversations, messages, sharedLinks } from "@/db/schema";
+import { eq, asc, and } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { ChatMessage } from "@/components/chat/chat-message";
 
 export default async function SharePage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
+
+  // First try: look up as a shared_links ID
+  const sharedLink = await db.query.sharedLinks.findFirst({
+    where: and(eq(sharedLinks.id, params.id), eq(sharedLinks.active, true)),
+  });
+
+  let conversationId: string;
+
+  if (sharedLink) {
+    conversationId = sharedLink.conversationId;
+  } else {
+    // Fallback: treat the ID as a direct conversation ID (backwards compat)
+    conversationId = params.id;
+  }
+
   const conversation = await db.query.conversations.findFirst({
-    where: eq(conversations.id, params.id),
+    where: eq(conversations.id, conversationId),
     with: {
-      user: true
-    }
+      user: true,
+    },
   });
 
   if (!conversation || !conversation.isShared) {
@@ -18,7 +33,7 @@ export default async function SharePage(props: { params: Promise<{ id: string }>
   }
 
   const dbMessages = await db.query.messages.findMany({
-    where: eq(messages.conversationId, params.id),
+    where: eq(messages.conversationId, conversationId),
     orderBy: [asc(messages.createdAt)],
   });
 
@@ -50,3 +65,4 @@ export default async function SharePage(props: { params: Promise<{ id: string }>
     </div>
   );
 }
+

@@ -38,7 +38,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             enableSystem
             disableTransitionOnChange
           >
-            {/* @ts-expect-error React 19 types */}
+            {/* @ts-expect-error Base UI type mismatch */}
             <TooltipProvider delayDuration={200}>
               {children}
             </TooltipProvider>

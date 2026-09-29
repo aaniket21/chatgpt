@@ -2,7 +2,7 @@
 
 import { auth } from "@/server/auth";
 import { db } from "@/db";
-import { conversations, messages } from "@/db/schema";
+import { conversations, messages, sharedLinks } from "@/db/schema";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { eq, and } from "drizzle-orm";
@@ -132,9 +132,60 @@ export async function generateSharedLinkAction(conversationId: string) {
     throw new Error("Unauthorized");
   }
 
+  // Mark conversation as shared
   await db.update(conversations)
     .set({ isShared: true })
     .where(eq(conversations.id, conversationId));
-    
-  return conversationId;
+
+  // Create a shared_links record
+  const [link] = await db.insert(sharedLinks)
+    .values({
+      conversationId,
+      userId: session.user.id,
+      active: true,
+    })
+    .returning({ id: sharedLinks.id });
+
+  return link.id;
+}
+
+export async function revokeSharedLinkAction(linkId: string) {
+  const session = await auth();
+  if (!session?.user) throw new Error("Unauthorized");
+
+  // Deactivate the link
+  await db.update(sharedLinks)
+    .set({ active: false })
+    .where(and(eq(sharedLinks.id, linkId), eq(sharedLinks.userId, session.user.id)));
+
+  // Also check if there are any remaining active links for the conversation
+  const link = await db.query.sharedLinks.findFirst({
+    where: eq(sharedLinks.id, linkId),
+  });
+
+  if (link) {
+    const activeLinks = await db.query.sharedLinks.findMany({
+      where: and(eq(sharedLinks.conversationId, link.conversationId), eq(sharedLinks.active, true)),
+    });
+
+    // If no active links remain, unshare the conversation
+    if (activeLinks.length === 0) {
+      await db.update(conversations)
+        .set({ isShared: false })
+        .where(eq(conversations.id, link.conversationId));
+    }
+  }
+
+  revalidatePath("/");
+}
+
+export async function deleteAllChatsAction() {
+  const session = await auth();
+  if (!session?.user) throw new Error("Unauthorized");
+
+  await db.delete(conversations)
+    .where(eq(conversations.userId, session.user.id));
+
+  revalidatePath("/");
+  redirect("/");
 }

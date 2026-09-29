@@ -13,7 +13,14 @@ export async function saveConnectionAction(data: any, id?: string) {
     throw new Error("Unauthorized");
   }
 
-  const { name, provider, baseUrl, apiKey, modelId, mode } = data;
+  const { name, provider, baseUrl, apiKey, modelId, mode, temperature, topP, maxTokens, reasoningEffort } = data;
+
+  const params = {
+    ...(temperature !== undefined && temperature !== null ? { temperature } : {}),
+    ...(topP !== undefined && topP !== null ? { topP } : {}),
+    ...(maxTokens !== undefined && maxTokens !== null ? { maxTokens } : {}),
+    ...(reasoningEffort ? { reasoningEffort } : {}),
+  };
 
   const encryptedApiKey = apiKey ? encryptKey(apiKey) : null;
 
@@ -32,6 +39,7 @@ export async function saveConnectionAction(data: any, id?: string) {
       encryptedApiKey: apiKey ? encryptedApiKey : existing.encryptedApiKey,
       modelId,
       mode,
+      params: Object.keys(params).length > 0 ? params : null,
     }).where(eq(modelConnections.id, id));
   } else {
     // Create
@@ -43,6 +51,7 @@ export async function saveConnectionAction(data: any, id?: string) {
       encryptedApiKey,
       modelId,
       mode,
+      params: Object.keys(params).length > 0 ? params : null,
     });
   }
 

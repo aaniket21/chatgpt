@@ -25,6 +25,10 @@ const connectionSchema = z.object({
   apiKey: z.string().optional(),
   modelId: z.string().min(1, "Model ID is required"),
   mode: z.enum(["server", "browser"]).default("server"),
+  temperature: z.coerce.number().min(0).max(2).optional(),
+  topP: z.coerce.number().min(0).max(1).optional(),
+  maxTokens: z.coerce.number().int().min(1).optional(),
+  reasoningEffort: z.string().optional(),
 });
 
 export type ConnectionFormValues = z.infer<typeof connectionSchema>;
@@ -45,6 +49,10 @@ export function ConnectionForm({ initialData, onSubmit, isLoading }: ConnectionF
       apiKey: initialData?.apiKey || "",
       modelId: initialData?.modelId || "",
       mode: initialData?.mode || "server",
+      temperature: (initialData as any)?.temperature ?? undefined,
+      topP: (initialData as any)?.topP ?? undefined,
+      maxTokens: (initialData as any)?.maxTokens ?? undefined,
+      reasoningEffort: (initialData as any)?.reasoningEffort ?? "",
     },
   });
 
@@ -52,6 +60,43 @@ export function ConnectionForm({ initialData, onSubmit, isLoading }: ConnectionF
 
   const [isTesting, setIsTesting] = useState(false);
   const [testResult, setTestResult] = useState<{success: boolean, msg: string} | null>(null);
+
+  const [isFetchingModels, setIsFetchingModels] = useState(false);
+  const [availableModels, setAvailableModels] = useState<{id: string, name: string}[]>([]);
+  const [modelsError, setModelsError] = useState<string | null>(null);
+
+  const handleFetchModels = async () => {
+    const data = watch();
+    setIsFetchingModels(true);
+    setModelsError(null);
+    try {
+      const res = await fetch("/api/connections/models", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider: data.provider,
+          baseUrl: data.baseUrl,
+          apiKey: data.apiKey
+        }),
+      });
+      const json = await res.json();
+      if (res.ok) {
+        setAvailableModels(json.models || []);
+        if (json.models?.length > 0) {
+          // Keep current model if valid, else pick first
+          if (!json.models.find((m: any) => m.id === data.modelId)) {
+            setValue("modelId", json.models[0].id);
+          }
+        }
+      } else {
+        setModelsError(json.error || "Failed to fetch models");
+      }
+    } catch (e: any) {
+      setModelsError(e.message || "Network error");
+    } finally {
+      setIsFetchingModels(false);
+    }
+  };
 
   const handleTestConnection = async () => {
     const data = watch();
@@ -122,7 +167,29 @@ export function ConnectionForm({ initialData, onSubmit, isLoading }: ConnectionF
 
           <div className="space-y-2">
             <Label htmlFor="modelId">Default Model ID</Label>
-            <Input id="modelId" {...register("modelId")} placeholder="gpt-4o-mini" />
+            <div className="flex gap-2">
+              {availableModels.length > 0 ? (
+                <Select 
+                  value={watch("modelId")} 
+                  onValueChange={(val: any) => setValue("modelId", val)}
+                >
+                  <SelectTrigger id="modelId" className="flex-1">
+                    <SelectValue placeholder="Select a model" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableModels.map((m) => (
+                      <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Input id="modelId" className="flex-1" {...register("modelId")} placeholder="gpt-4o-mini" />
+              )}
+              <Button type="button" variant="outline" onClick={handleFetchModels} disabled={isFetchingModels || isLoading}>
+                {isFetchingModels ? "Fetching..." : "Fetch Models"}
+              </Button>
+            </div>
+            {modelsError && <p className="text-sm text-destructive">{modelsError}</p>}
             {errors.modelId && <p className="text-sm text-destructive">{errors.modelId.message}</p>}
           </div>
 
@@ -141,6 +208,28 @@ export function ConnectionForm({ initialData, onSubmit, isLoading }: ConnectionF
               </SelectContent>
             </Select>
             {errors.mode && <p className="text-sm text-destructive">{errors.mode.message}</p>}
+          </div>
+
+          <div className="border-t pt-4 mt-2">
+            <p className="text-xs font-medium text-muted-foreground mb-3">Default Model Parameters (Optional)</p>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="temperature">Temperature</Label>
+                <Input id="temperature" type="number" step="0.1" min="0" max="2" {...register("temperature")} placeholder="0.7" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="topP">Top P</Label>
+                <Input id="topP" type="number" step="0.05" min="0" max="1" {...register("topP")} placeholder="1.0" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="maxTokens">Max Tokens</Label>
+                <Input id="maxTokens" type="number" min="1" {...register("maxTokens")} placeholder="4096" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="reasoningEffort">Reasoning Effort</Label>
+                <Input id="reasoningEffort" {...register("reasoningEffort")} placeholder="low / medium / high" />
+              </div>
+            </div>
           </div>
 
           {testResult && (
