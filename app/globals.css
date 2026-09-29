@@ -8,9 +8,9 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
+  --font-sans: var(--font-inter);
   --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  --font-heading: var(--font-inter);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -49,73 +49,127 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* ============================
+   LIGHT MODE — Stitch Design System
+   Primary: Soft Steel Blue #7C9CBF
+   Background: Near-white #F8F9FB
+   Text: Soft charcoal #374151
+   Borders: Barely visible #E5E7EB
+   ============================ */
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  /* Page & surface backgrounds */
+  --background: oklch(0.98 0.003 250);        /* #F8F9FB — calm near-white */
+  --foreground: oklch(0.33 0.015 250);         /* #374151 — soft charcoal */
+
+  /* Card / panel surfaces */
+  --card: oklch(1 0 0);                         /* #FFFFFF — pure white cards */
+  --card-foreground: oklch(0.33 0.015 250);     /* #374151 */
+
+  /* Popover / dropdown surfaces */
+  --popover: oklch(1 0 0);                      /* #FFFFFF */
+  --popover-foreground: oklch(0.33 0.015 250);  /* #374151 */
+
+  /* Primary — Soft Steel Blue */
+  --primary: oklch(0.665 0.045 237);            /* #7C9CBF */
+  --primary-foreground: oklch(1 0 0);           /* #FFFFFF */
+
+  /* Secondary — Very light cool gray */
+  --secondary: oklch(0.955 0.005 250);          /* ~#EDF0F4 */
+  --secondary-foreground: oklch(0.33 0.015 250);/* #374151 */
+
+  /* Muted — Subtle background tints */
+  --muted: oklch(0.955 0.005 250);              /* ~#EDF0F4 */
+  --muted-foreground: oklch(0.505 0.012 250);   /* #6B7280 */
+
+  /* Accent — Hover/active states */
+  --accent: oklch(0.955 0.005 250);             /* ~#EDF0F4 */
+  --accent-foreground: oklch(0.33 0.015 250);   /* #374151 */
+
+  /* Destructive — Muted soft rose */
+  --destructive: oklch(0.577 0.2 25);           /* Soft rose red */
+
+  /* Borders & inputs */
+  --border: oklch(0.915 0.005 250);             /* #E5E7EB — barely visible */
+  --input: oklch(0.915 0.005 250);              /* #E5E7EB */
+  --ring: oklch(0.665 0.045 237);               /* Steel blue focus ring */
+
+  /* Charts */
+  --chart-1: oklch(0.665 0.045 237);            /* Steel blue */
+  --chart-2: oklch(0.72 0.05 237);              /* Lighter steel */
+  --chart-3: oklch(0.58 0.04 237);              /* Deeper steel */
+  --chart-4: oklch(0.63 0.06 155);              /* Muted sage green */
+  --chart-5: oklch(0.55 0.04 250);              /* Cool gray */
+
+  /* Roundness: 8px per ROUND_EIGHT */
+  --radius: 0.5rem;
+
+  /* Sidebar — #F8F9FB background matching page */
+  --sidebar: oklch(0.98 0.003 250);             /* #F8F9FB */
+  --sidebar-foreground: oklch(0.33 0.015 250);  /* #374151 */
+  --sidebar-primary: oklch(0.665 0.045 237);    /* Steel blue */
+  --sidebar-primary-foreground: oklch(1 0 0);   /* White */
+  --sidebar-accent: oklch(0.935 0.008 250);     /* Subtle hover tint */
+  --sidebar-accent-foreground: oklch(0.33 0.015 250);
+  --sidebar-border: oklch(0.915 0.005 250);     /* #E5E7EB */
+  --sidebar-ring: oklch(0.665 0.045 237);       /* Steel blue */
 }
 
+/* ============================
+   DARK MODE — Complementary dark steel palette
+   ============================ */
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
+  /* Page & surface backgrounds */
+  --background: oklch(0.16 0.012 250);          /* Deep charcoal with blue tint */
+  --foreground: oklch(0.93 0.005 250);          /* Off-white with warmth */
+
+  /* Card / panel surfaces */
+  --card: oklch(0.2 0.012 250);                 /* Slightly lighter than bg */
+  --card-foreground: oklch(0.93 0.005 250);
+
+  /* Popover / dropdown surfaces */
+  --popover: oklch(0.22 0.012 250);
+  --popover-foreground: oklch(0.93 0.005 250);
+
+  /* Primary — Brighter steel blue for dark contrast */
+  --primary: oklch(0.72 0.055 237);             /* Brighter steel for dark mode */
+  --primary-foreground: oklch(0.16 0.012 250);  /* Dark text on primary */
+
+  /* Secondary */
+  --secondary: oklch(0.25 0.01 250);
+  --secondary-foreground: oklch(0.93 0.005 250);
+
+  /* Muted */
+  --muted: oklch(0.25 0.01 250);
+  --muted-foreground: oklch(0.63 0.012 250);
+
+  /* Accent */
+  --accent: oklch(0.25 0.01 250);
+  --accent-foreground: oklch(0.93 0.005 250);
+
+  /* Destructive */
+  --destructive: oklch(0.65 0.18 22);
+
+  /* Borders & inputs — subtle in dark */
   --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --input: oklch(1 0 0 / 12%);
+  --ring: oklch(0.72 0.055 237);                /* Steel blue focus ring */
+
+  /* Charts */
+  --chart-1: oklch(0.72 0.055 237);
+  --chart-2: oklch(0.63 0.04 237);
+  --chart-3: oklch(0.55 0.035 237);
+  --chart-4: oklch(0.65 0.05 155);
+  --chart-5: oklch(0.45 0.03 250);
+
+  /* Sidebar */
+  --sidebar: oklch(0.18 0.012 250);
+  --sidebar-foreground: oklch(0.93 0.005 250);
+  --sidebar-primary: oklch(0.72 0.055 237);
+  --sidebar-primary-foreground: oklch(0.93 0.005 250);
+  --sidebar-accent: oklch(0.25 0.01 250);
+  --sidebar-accent-foreground: oklch(0.93 0.005 250);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --sidebar-ring: oklch(0.72 0.055 237);
 }
 
 @layer base {
@@ -127,5 +181,29 @@
   }
   html {
     @apply font-sans;
+  }
+}
+
+/* Custom scrollbar matching Stitch design */
+@layer base {
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: oklch(0.88 0.005 250);
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: oklch(0.78 0.01 250);
+  }
+  .dark ::-webkit-scrollbar-thumb {
+    background: oklch(0.3 0.01 250);
+  }
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background: oklch(0.4 0.01 250);
   }
 }

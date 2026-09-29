@@ -87,3 +87,13 @@
 - [x] M5. Mask API key last 4 chars
 - [x] M6. Delete all conversations
 - [x] P7. PDF export
+
+## Phase 8: Stitch Design System Theme Application (Completed by Claude Opus 4.6 (Thinking))
+- [x] 8.1 Switch font from Geist Sans to Inter (400/500/600 weights)
+- [x] 8.2 Update all CSS variables to steel blue palette (#7C9CBF primary)
+- [x] 8.3 Set background to near-white #F8F9FB, text to soft charcoal #374151
+- [x] 8.4 Set border-radius to 8px (ROUND_EIGHT)
+- [x] 8.5 Update dark mode to complementary dark steel palette
+- [x] 8.6 Add custom 4px scrollbar matching design
+- [x] 8.7 Update focus ring to steel blue
+- [x] 8.8 Verify build succeeds (all 13 pages compiled)
