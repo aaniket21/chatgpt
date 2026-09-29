@@ -80,15 +80,28 @@ export async function updateSystemPromptAction(id: string, systemPrompt: string)
   revalidatePath(`/c/${id}`);
 }
 
-export async function saveBrowserMessageAction(conversationId: string, role: string, content: string, reasoning: string | null = null, tokens: number = 0) {
+export async function saveBrowserMessageAction(conversationId: string, role: string, content: string, reasoning: string | null = null, tokens: number = 0, modelConnectionId: string | null = null) {
   const session = await auth();
   if (!session?.user) throw new Error("Unauthorized");
 
-  const conversation = await db.query.conversations.findFirst({
+  let conversation = await db.query.conversations.findFirst({
     where: and(eq(conversations.id, conversationId), eq(conversations.userId, session.user.id)),
   });
 
-  if (!conversation) throw new Error("Conversation not found");
+  if (!conversation) {
+    // Auto-create conversation
+    await db.insert(conversations).values({
+      id: conversationId,
+      userId: session.user.id,
+      title: "New Chat",
+      modelConnectionId,
+    });
+    conversation = await db.query.conversations.findFirst({
+      where: and(eq(conversations.id, conversationId), eq(conversations.userId, session.user.id)),
+    });
+  }
+
+  if (!conversation) throw new Error("Failed to create or find conversation");
 
   await db.insert(messages).values({
     conversationId,

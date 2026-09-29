@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Message } from "ai";
 import { ChatMessage } from "./chat-message";
 import { AlertCircle, Brain, Loader2, RefreshCcw } from "lucide-react";
@@ -16,10 +16,40 @@ interface MessageListProps {
 
 export function MessageList({ messages, isLoading, error, reload }: MessageListProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
+  const [isAtBottom, setIsAtBottom] = useState(true);
+  const previousMessagesLength = useRef(0);
 
+  // Track if user has scrolled up
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isLoading, error]);
+    const scrollContainer = bottomRef.current?.closest('.overflow-y-auto');
+    if (!scrollContainer) return;
+    
+    const handleScroll = () => {
+      // Consider "at bottom" if within 150px of the bottom
+      const { scrollTop, scrollHeight, clientHeight } = scrollContainer;
+      const isNearBottom = scrollHeight - scrollTop - clientHeight < 150;
+      setIsAtBottom(isNearBottom);
+    };
+
+    // Initial check
+    handleScroll();
+
+    scrollContainer.addEventListener('scroll', handleScroll, { passive: true });
+    return () => scrollContainer.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Scroll to bottom when new messages arrive, but only if already at bottom or if a new message was just added
+  useEffect(() => {
+    const isNewMessage = messages.length > previousMessagesLength.current;
+    previousMessagesLength.current = messages.length;
+
+    if (isAtBottom || isNewMessage) {
+      // Small timeout to allow DOM to render before calculating scroll
+      setTimeout(() => {
+        bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 50);
+    }
+  }, [messages, isLoading, error, isAtBottom]);
 
   if (messages.length === 0 && !isLoading && !error) {
     return (

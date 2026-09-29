@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 import { useChat } from "@ai-sdk/react";
 import { Message } from "ai";
@@ -11,6 +12,8 @@ import { SystemPromptModal } from "./system-prompt-modal";
 import { saveBrowserMessageAction } from "@/server/actions/chat-actions";
 import { ChatHeaderActions } from "./chat-header-actions";
 
+import { v4 as uuidv4 } from "uuid";
+
 interface ChatProps {
   id?: string;
   initialMessages?: any[];
@@ -19,7 +22,10 @@ interface ChatProps {
   systemPrompt?: string | null;
 }
 
-export function Chat({ id, initialMessages = [], currentConnectionId, connections = [], systemPrompt }: ChatProps) {
+export function Chat({ id: chatId, initialMessages = [], currentConnectionId, connections = [], systemPrompt }: ChatProps) {
+  const router = useRouter();
+  const [newChatId] = useState(() => uuidv4());
+  const effectiveId = chatId || newChatId;
   const activeConnection = connections.find(c => c.id === currentConnectionId) || connections.find(c => c.isDefault);
   const isBrowserMode = activeConnection?.mode === "browser";
   const [loadProgress, setLoadProgress] = useState("");
@@ -78,12 +84,17 @@ export function Chat({ id, initialMessages = [], currentConnectionId, connection
     }
   } : undefined;
 
-  const { messages, append, isLoading, error, stop, reload } = useChat({
-    id,
+  const { id, messages, append, isLoading, error, stop, reload } = useChat({
+    id: effectiveId,
     initialMessages,
     api: "/api/chat",
-    body: { id },
+    body: { id: effectiveId, connectionId: activeConnection?.id },
     fetch: customFetch,
+    onResponse: () => {
+      if (!chatId) {
+        router.refresh();
+      }
+    },
     onFinish: async (message) => {
       if (isBrowserMode && id) {
         // We only save the assistant message. The user message is saved below in handleMessageSubmit
@@ -98,7 +109,7 @@ export function Chat({ id, initialMessages = [], currentConnectionId, connection
         }
 
         try {
-          await saveBrowserMessageAction(id, "assistant", finalContent, reasoning, 0);
+          await saveBrowserMessageAction(id, "assistant", finalContent, reasoning, 0, activeConnection?.id);
         } catch (e) {
           console.error("Failed to save assistant message", e);
         }
@@ -136,7 +147,7 @@ export function Chat({ id, initialMessages = [], currentConnectionId, connection
 
     if (isBrowserMode && id) {
       try {
-        await saveBrowserMessageAction(id, "user", finalContent);
+        await saveBrowserMessageAction(id, "user", finalContent, null, 0, activeConnection?.id);
       } catch (e) {
         console.error("Failed to save user message", e);
       }
@@ -148,6 +159,12 @@ export function Chat({ id, initialMessages = [], currentConnectionId, connection
       ...(imageAttachments.length > 0 ? { experimental_attachments: imageAttachments as any } : {})
     });
   };
+
+  useEffect(() => {
+    if (messages.length > 0 && id && id !== "undefined" && typeof window !== "undefined" && window.location.pathname === "/") {
+      window.history.replaceState(null, "", `/c/${id}`);
+    }
+  }, [messages.length, id]);
 
   return (
     <div className="flex h-full w-full flex-col overflow-hidden relative">

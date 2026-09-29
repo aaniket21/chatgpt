@@ -13,6 +13,10 @@ export default async function ChatPage({ params }: { params: Promise<{ id: strin
   
   const { id } = await params;
 
+  if (!id || id === "undefined") {
+    redirect("/");
+  }
+
   const conversation = await db.query.conversations.findFirst({
     where: and(eq(conversations.id, id), eq(conversations.userId, session.user.id)),
   });

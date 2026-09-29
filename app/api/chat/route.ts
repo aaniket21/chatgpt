@@ -35,7 +35,7 @@ export async function POST(req: Request) {
     });
   }
 
-  const { messages: clientMessages, id: conversationId } = await req.json();
+  const { messages: clientMessages, id: conversationId, connectionId } = await req.json();
 
   const latestMessage = clientMessages[clientMessages.length - 1];
 
@@ -47,6 +47,19 @@ export async function POST(req: Request) {
     conversation = await db.query.conversations.findFirst({
       where: eq(conversations.id, conversationId),
     });
+
+    if (!conversation) {
+      // Create new conversation
+      await db.insert(conversations).values({
+        id: conversationId,
+        userId: session.user.id,
+        title: "New Chat",
+        modelConnectionId: connectionId || null,
+      });
+      conversation = await db.query.conversations.findFirst({
+        where: eq(conversations.id, conversationId),
+      });
+    }
 
     if (conversation && conversation.userId === session.user.id) {
       await db.insert(messages).values({

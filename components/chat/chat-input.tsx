@@ -115,6 +115,9 @@ export function ChatInput({ onSubmit, isLoading }: ChatInputProps) {
         />
         
         <div className="flex shrink-0 items-center gap-2 pl-2">
+          <span className="text-[10px] text-muted-foreground/60 select-none hidden sm:inline-block">
+            ~{Math.round(value.length / 4)} tokens
+          </span>
           <Button
             type="submit"
             size="icon"
@@ -124,10 +127,6 @@ export function ChatInput({ onSubmit, isLoading }: ChatInputProps) {
           >
             <SendHorizontal className="h-4 w-4" />
           </Button>
-        </div>
-        
-        <div className="absolute right-4 bottom-2 text-[10px] text-muted-foreground/60 select-none">
-          ~{Math.round(value.length / 4)} tokens
         </div>
       </form>
     </div>
